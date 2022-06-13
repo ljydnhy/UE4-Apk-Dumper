@@ -1,5 +1,5 @@
 //
-// Created by Ascarre on 09-05-2022.
+// Created by Ascarre on 13-06-2022.
 //
 
 #ifndef SDKGENERATOR_DUMPER_H
@@ -7,23 +7,45 @@
 
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
+#include <ElfFixer/fix.h>
 
 #include "PropertyStructs.h"
 
+void DumpLib(uintptr_t ModuleBase, uintptr_t ModuleEnd) {
+    string LibPath = OutPutPathDirectory + Offsets::ProcessName + "/LibTemp.dat";
+    ofstream LibDump(LibPath, ofstream::out | ofstream::binary);
+    size_t LibSize = (ModuleEnd - ModuleBase);
+    if (LibDump.is_open()) {
+        char *buffer = new char[1];
+        while (LibSize != 0) {
+            PVM_Read((void *) (ModuleBase++), buffer, 1);
+            LibDump.write(buffer, 1);
+            --LibSize;
+        }
+        LibDump.close();
+    }
+    sleep(5);
+    string LibFixedPath = OutPutPathDirectory + Offsets::ProcessName + "/" + Offsets::ModuleName;
+    fix_so(LibPath.c_str(), LibFixedPath.c_str(), ModuleBase);
+    remove(LibPath.c_str());//Doesnt work so will think of a workaround for deleteing the temp file later
+}
+
+/********** Main Dumping Functions **********/
 void DumpBlocks(ofstream &gname, uint32 &count, uintptr_t FNamePool, uint32 blockId, uint32 blockSize) {
-    uintptr_t Start = Read<uintptr_t>(FNamePool + Offsets::FNamePoolBlocks + (blockId * Offsets::PointerSize));
-    uintptr_t End = Start + blockSize - Offsets::FNameEntryString;
+    uintptr_t It = Read<uintptr_t>(FNamePool + Offsets::FNamePoolBlocks + (blockId * Offsets::PointerSize));
+    uintptr_t End = It + blockSize - Offsets::FNameEntryString;
     uint32 Block = blockId;
     uint16 Offset = 0;
-    while (Start < End) {
-        uintptr_t FNameEntry = Start;
+    while (It < End) {
+        uintptr_t FNameEntry = It;
         int16 FNameEntryHeader = Read<int16>(FNameEntry);
         int StrLength = FNameEntryHeader >> Offsets::FNameEntryLenBit;
         if (StrLength) {
             bool wide = FNameEntryHeader & 1;
-
             ///Unicode Dumping Not Supported
             if (StrLength > 0) {
+                //String Length Limit
                 if (StrLength < 250) {
                     string str;
                     uint32 key = (Block << 16 | Offset);
@@ -34,66 +56,46 @@ void DumpBlocks(ofstream &gname, uint32 &count, uintptr_t FNamePool, uint32 bloc
                     } else {
                         str = ReadString2(StrPtr, StrLength);
                     }
-                    gname << (wide ? "Wide" : "") << dec << "{" << StrLength << "} " << hex << "[" << key << "]: " << str << endl;
+
+                    gname << (wide ? "Wide" : "") << "[" << key << "]: " << str << endl;
                     count++;
                 }
             } else {
-                StrLength = -StrLength;//Negative lengths are for Unicode Characters
+                StrLength = -StrLength;
             }
 
             //Next
             Offset += StrLength / Offsets::FNameStride;
-            uint16 bytes = Offsets::FNameEntryString + StrLength * (wide ? sizeof(wchar_t) : sizeof(char));
-            Start += (bytes + Offsets::FNameStride - 1u) & ~(Offsets::FNameStride - 1u);
-        } else {
+            uint16 bytes =
+                    Offsets::FNameEntryString + StrLength * (wide ? sizeof(wchar_t) : sizeof(char));
+            It += (bytes + Offsets::FNameStride - 1u) & ~(Offsets::FNameStride - 1u);
+        } else {// Null-terminator entry found
             break;
         }
     }
 }
 
-int32 GetObjectCount(uintptr_t ModuleBase) {
-    if (isNew){
-        return Read<int32>((ModuleBase + Offsets::GUObjectArray) + Offsets::TUObjectArray + Offsets::TUObjectArrayNumElements423);
-    } else {
-        return Read<int32>((ModuleBase + Offsets::GUObjectArray) + Offsets::TUObjectArray + Offsets::TUObjectArrayNumElements);
-    }
-}
-
-uintptr_t GetUObjectFromID(uintptr_t ModuleBase, uint32 index) {
-    if (isNew) {
-        uintptr_t TUObjectArray = Read<uintptr_t>((ModuleBase + Offsets::GUObjectArray) + Offsets::TUObjectArray);
-        uintptr_t Chunk = Read<uintptr_t>(TUObjectArray + ((index / 0x10000) * Offsets::PointerSize));
-        return Read<uintptr_t>(Chunk + Offsets::FUObjectItemPadd + ((index % 0x10000) * Offsets::FUObjectItemSize));
-    } else {
-        uintptr_t FUObjectArray = (ModuleBase + Offsets::GUObjectArray);
-        uintptr_t TUObjectArray = Read<uintptr_t>(FUObjectArray + Offsets::TUObjectArray);
-        return Read<uintptr_t>(TUObjectArray + (index * Offsets::FUObjectItemSize));
-    }
-}
-
-/********** Main Dumping Functions **********/
 void DumpStrings(uintptr_t ModuleBase) {
     uint32 count = 0;
     ofstream gname(OutPutPathDirectory + Offsets::ProcessName + "/NamesDump.txt", ofstream::out);
     if (gname.is_open()) {
-        gname << "//Dumper Made By Ascarre \n Join TlgChannel - https://t.me/ascarrehacks" << "\n" << endl;
-        if (isPubgM){
-            gname << "//Global Offsets and Pointers Used to Dump:" << endl;
-            gname << "//GNames - 0x" << hex << Offsets::GNames << " + 0x" << hex << Offsets::GNamesPointer << "\n" << endl;
-        } else {
-            gname << "//Global Offsets Used to Dump:" << endl;
-            gname << "//GNames - 0x" << hex << Offsets::GNames << "\n" << endl;
-        }
+        gname << "//Dumper Made By Ascarre \n//Join - https://t.me/ascarrehacks" << "\n" << endl;
+        gname << "//Libbase was 0x" << hex << ModuleBase << "\n" << endl;
+        if (isNew) {
+            uintptr_t FNamePool = (ModuleBase + Offsets::GNames) + Offsets::GNamesToFNamePool;
 
-        if (isNew){
-            uintptr_t FNamePool = ((ModuleBase + Offsets::GNames) + Offsets::GNamesToFNamePool);
             uint32 BlockSize = Offsets::FNameStride * 65536;
             uint32 CurrentBlock = Read<uint32>(FNamePool + Offsets::FNamePoolCurrentBlock);
-            uint32 CurrentByteCursor = Read<uint32>(FNamePool + Offsets::FNamePoolCurrentByteCursor);
-            for (uint32 BlockIdx = 0; BlockIdx < CurrentBlock; ++BlockIdx) { //All Blocks Except Current
+            uint32 CurrentByteCursor = Read<uint32>(
+                    FNamePool + Offsets::FNamePoolCurrentByteCursor);
+
+            //All Blocks Except Current
+            for (uint32 BlockIdx = 0; BlockIdx < CurrentBlock; ++BlockIdx) {
                 DumpBlocks(gname, count, FNamePool, BlockIdx, BlockSize);
             }
-            DumpBlocks(gname, count, FNamePool, CurrentBlock, CurrentByteCursor);//Last Block
+
+            //Last Block
+            DumpBlocks(gname, count, FNamePool, CurrentBlock, CurrentByteCursor);
         } else {
             for (uint32 i = 0; i < GNameLimit; i++) {
                 string s = GetFNameFromID(ModuleBase, i);
@@ -111,17 +113,8 @@ void DumpObjects(uintptr_t ModuleBase) {
     uint32 count = 0;
     ofstream obj(OutPutPathDirectory + Offsets::ProcessName + "/Objects.txt", ofstream::out);
     if (obj.is_open()) {
-
-        obj << "//Dumper Made By Ascarre \n Join TlgChannel - https://t.me/ascarrehacks" << "\n" << endl;
-        if (isPubgM){
-            obj << "//Global Offsets and Pointers Used to Dump:" << endl;
-            obj << "//GNames - 0x" << hex << Offsets::GNames << " + 0x" << hex << Offsets::GNamesPointer << endl;
-            obj << "//GUObjectArray - 0x" << hex << Offsets::GUObjectArray << "\n" << endl;
-        } else {
-            obj << "//Global Offsets Used to Dump:" << endl;
-            obj << "//GNames - 0x" << hex << Offsets::GNames  << endl;
-            obj << "//GUObjectArray - 0x" << hex << Offsets::GUObjectArray << "\n" << endl;
-        }
+        obj << "//Dumper Made By Ascarre \n//Join - https://t.me/ascarrehacks" << "\n" << endl;
+        obj << "//Libbase was 0x" << hex << ModuleBase << "\n" << endl;
 
         int32 ocount = GetObjectCount(ModuleBase);
         if (ocount < 10 || ocount > 999999) {
@@ -146,26 +139,12 @@ void DumpObjects(uintptr_t ModuleBase) {
 void DumpSDK(uintptr_t ModuleBase) {
     ofstream sdk(OutPutPathDirectory + Offsets::ProcessName + "/SDK.txt", ofstream::out);
     if (sdk.is_open()) {
-
-        sdk << "//Dumper Made By Ascarre \n Join TlgChannel - https://t.me/ascarrehacks" << "\n" << endl;
-        if (isPubgM){
-            sdk << "//Global Offsets and Pointers Used to Dump:" << endl;
-            sdk << "//GNames - 0x" << hex << Offsets::GNames << " + 0x" << hex << Offsets::GNamesPointer << endl;
-            sdk << "//GUObjectArray - 0x" << hex << Offsets::GUObjectArray << "\n" << endl;
-        } else {
-            sdk << "//Global Offsets Used to Dump:" << endl;
-            sdk << "//GNames - 0x" << hex << Offsets::GNames  << endl;
-            sdk << "//GUObjectArray - 0x" << hex << Offsets::GUObjectArray << "\n" << endl;
-        }
-
-        int32 oCount = GetObjectCount(ModuleBase);
-        if (oCount < 10 || oCount > 999999) {
-            oCount = 300000;
-        }
-        for (int32 i = 0; i < oCount; i++) {
-            uintptr_t UObjectArray = GetUObjectFromID(ModuleBase, i);
-            if (UObject::isValid(UObjectArray)) {
-                WriteStructures(ModuleBase, sdk, UObject::getClass(UObjectArray));
+        sdk << "//Dumper Made By Ascarre \n Join - https://t.me/ascarrehacks" << "\n" << endl;
+        sdk << "//Libbase was 0x" << hex << ModuleBase << "\n" << endl;
+        for (int32 i = 0; i < GetObjectCount(ModuleBase); i++) {
+            uintptr_t uobj = GetUObjectFromID(ModuleBase, i);
+            if (UObject::isValid(uobj)) {
+                writeStruct(sdk, ModuleBase, UObject::getClass(uobj));
             }
         }
         sdk.close();
@@ -175,17 +154,8 @@ void DumpSDK(uintptr_t ModuleBase) {
 void DumpSDKW(uintptr_t ModuleBase) {
     ofstream sdk(OutPutPathDirectory + Offsets::ProcessName + "/SDKW.txt", ofstream::out);
     if (sdk.is_open()) {
-
-        sdk << "//Dumper Made By Ascarre \n Join TlgChannel - https://t.me/ascarrehacks" << "\n" << endl;
-        if (isPubgM){
-            sdk << "//Global Offsets and Pointers Used to Dump:" << endl;
-            sdk << "//GWorld - 0x" << hex << Offsets::GWorld << " + 0x" << hex << Offsets::GWorldPointer << endl;
-            sdk << "//GNames - 0x" << hex << Offsets::GNames << " + 0x" << hex << Offsets::GNamesPointer << "\n" << endl;
-        } else {
-            sdk << "//Global Offsets Used to Dump:" << endl;
-            sdk << "//GWorld - 0x" << hex << Offsets::GWorld << endl;
-            sdk << "//GNames - 0x" << hex << Offsets::GNames << "\n" << endl;
-        }
+        sdk << "//Dumper Made By Ascarre \n Join - https://t.me/ascarrehacks" << "\n" << endl;
+        sdk << "//Libbase was 0x" << hex << ModuleBase << "\n" << endl;
 
         uintptr_t GWorld;
         if (isPubgM) {
@@ -194,21 +164,22 @@ void DumpSDKW(uintptr_t ModuleBase) {
             GWorld = Read<uintptr_t>(ModuleBase + Offsets::GWorld);
         }
         if (UObject::isValid(GWorld)) {
-            WriteStructures(ModuleBase, sdk, UObject::getClass(GWorld));
-
-            uintptr_t PersistentLevel = Read<uintptr_t>(GWorld + Offsets::PersistentLevel);
-            uintptr_t AActors = Read<uintptr_t>(PersistentLevel + Offsets::AActors);
-            int AActorsCount = Read<int>(PersistentLevel + Offsets::AActorsCount);
-
-            for (int i = 0; i < AActorsCount; i++) {
-                uintptr_t Base = Read<uintptr_t>(AActors + (i * Offsets::PointerSize));
-                if (UObject::isValid(Base)) {
-                    WriteStructures(ModuleBase, sdk, UObject::getClass(Base));
+            //Iterate World
+            writeStruct(sdk, ModuleBase, UObject::getClass(GWorld));
+            //Iterate Entities
+            uintptr_t level = Read<uintptr_t>(GWorld + Offsets::PersistentLevel);
+            uintptr_t actorList = Read<uintptr_t>(level + Offsets::AActors);
+            int actorsCount = Read<int>(level + Offsets::AActorsCount);
+            for (int i = 0; i < actorsCount; i++) {
+                uintptr_t actor = Read<uintptr_t>(actorList + (i * Offsets::PointerSize));
+                if (UObject::isValid(actor)) {
+                    writeStruct(sdk, ModuleBase, UObject::getClass(actor));
                 }
             }
         }
         sdk.close();
     }
 }
+
 
 #endif //SDKGENERATOR_DUMPER_H

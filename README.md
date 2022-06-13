@@ -46,12 +46,17 @@ Kill Apk signature Verification and follow this - https://youtu.be/cDEUkwToms4
 - 5) Fixed NamesDump for 64Bit.
 - 6) Fixed Project Issue for Others
 
+- v0.3:
+- 1) Added Support for No-Root Lib Dumping and Regeneration for 32 Bit & 64 Bit.
+- 2) Added Support for Android API Level 32. Minimum Sdk is now 26 (Android 8).
+- 3) Cleaned Up the Source
+
 # To-Do
 1. Add support to Dump Specific Offsets only.
-2. Add support to dump and regenerate Libs.
-3. Generate Internal Sdk Structures or Internal SDK.
-4. Add Support for UE3 and many other UE4 Games.
-5. Dump Calculted Offsets like ComponentToWorld and other Offsets.
+2. Generate Internal Sdk Structures or Internal SDK.
+3. Add Support for UE3 and many other UE4 Games.
+4. Dump Calculted Offsets like ComponentToWorld and other Offsets.
+5. Add Support for Pubg Lite.
 
 # Want to Support me?
 Join my Telegram Channel - https://t.me/ascarrehacks

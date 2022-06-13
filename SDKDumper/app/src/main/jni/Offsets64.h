@@ -5,7 +5,10 @@
 #ifndef SDKGENERATOR_OFFSETS64_H
 #define SDKGENERATOR_OFFSETS64_H
 
-bool isStringDump = false, isObjectsDump = false, isSdkDump = false, isSdkWDump = false, isNew = false, isPubgM = false;
+bool isFindGNames = false, isFindGUObject = false, isFindGWorld = false,
+isDumpLib = false, isStringDump = false, isObjectsDump = false, isSdkDump = false, isSdkWDump = false,
+isNew = false, isPubgM = false, isTestDump = false,
+StringsDumped = false, ObjectsDumped = false, SdkDumped = false, SdkWDumped = false;
 
 string OutPutPathDirectory("/sdcard/DumpedGames/");
 
@@ -37,7 +40,7 @@ namespace Offsets {
         //FNamePoolAllocator - UE 4.23+
         GNamesToFNamePool = 0x30,
         FNamePoolCurrentBlock = 0x8,
-        FNamePoolBlocks = 0x10,
+        FNamePoolBlocks = 0x10,//Apex - 0x0
         FNamePoolCurrentByteCursor = 0xC,
         FNameStride = 0x2,
         FNameEntryString = 0x2,

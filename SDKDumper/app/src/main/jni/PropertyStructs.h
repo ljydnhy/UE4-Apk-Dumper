@@ -4,9 +4,10 @@
 
 #ifndef SDKGENERATOR_PROPERTYSTRUCTS_H
 #define SDKGENERATOR_PROPERTYSTRUCTS_H
+
 #include <list>
 
-#include "Structures.h"
+#include "SDKStructures.h"
 
 string resolveProp(list<uintptr_t> &recurrce, uintptr_t ModuleBase, uintptr_t prop) {
     if (prop) {

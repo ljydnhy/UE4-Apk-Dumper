@@ -28,8 +28,31 @@ typedef unsigned long long uint64;
 typedef unsigned short UTF16;
 
 uint32 MAX_SIZE = 100;
-uint32 GNameLimit = 170000;
+uint32 GNameLimit = 200000;
 uint32 classCount = 0;
+
+vector <uint32> structIDMap;
+
+bool isEqual(string s1, const char *check) {
+    string s2(check);
+    return (s1 == s2);
+}
+
+bool isStartWith(string str, const char *check) {
+    return (str.rfind(check, 0) == 0);
+}
+
+bool isContain(string str, string check) {
+    size_t found = str.find(check);
+    return (found != string::npos);
+}
+
+bool isScanned(uint32 id) {
+    for (int i = 0; i < structIDMap.size(); i++) {
+        if (structIDMap[i] == id) { return true; }
+    }
+    return false;
+}
 
 struct WideStr {
     static int is_surrogate(UTF16 uc) {
@@ -83,13 +106,14 @@ struct WideStr {
 };
 
 string GetFNameFromID(uintptr_t ModuleBase, uint32 index) {
-    if (isNew){
+    if (isNew) {
         uint32 Block = index >> 16;
         uint16 Offset = index & 65535;
 
-        uintptr_t FNamePool = ((ModuleBase, Offsets::GNames) + Offsets::GNamesToFNamePool);
+        uintptr_t FNamePool = (ModuleBase + Offsets::GNames) + Offsets::GNamesToFNamePool;
 
-        uintptr_t NamePoolChunk = Read<uintptr_t>(FNamePool + Offsets::FNamePoolBlocks + (Block * Offsets::PointerSize));
+        uintptr_t NamePoolChunk = Read<uintptr_t>(
+                FNamePool + Offsets::FNamePoolBlocks + (Block * Offsets::PointerSize));
         uintptr_t FNameEntry = NamePoolChunk + (Offsets::FNameStride * Offset);
 
         int16 FNameEntryHeader = Read<int16>(FNameEntry);
@@ -109,16 +133,45 @@ string GetFNameFromID(uintptr_t ModuleBase, uint32 index) {
         }
     } else {
         uintptr_t GNames;
-        if (isPubgM){
-            GNames = Read<uintptr_t>(Read<uintptr_t>(ModuleBase + Offsets::GNames) + Offsets::GNamesPointer);
+        if (isPubgM) {
+            GNames = Read<uintptr_t>(
+                    Read<uintptr_t>(ModuleBase + Offsets::GNames) + Offsets::GNamesPointer);
         } else {
             GNames = Read<uintptr_t>(ModuleBase + Offsets::GNames);
         }
-        uintptr_t FNameEntryArr = Read<uintptr_t>(GNames + ((index / 0x4000) * Offsets::PointerSize));
-        uintptr_t FNameEntry = Read<uintptr_t>(FNameEntryArr + ((index % 0x4000) * Offsets::PointerSize));
+        uintptr_t FNameEntryArr = Read<uintptr_t>(
+                GNames + ((index / 0x4000) * Offsets::PointerSize));
+        uintptr_t FNameEntry = Read<uintptr_t>(
+                FNameEntryArr + ((index % 0x4000) * Offsets::PointerSize));
         return ReadString(FNameEntry + Offsets::NameString, MAX_SIZE);
     }
 }
+
+int32 GetObjectCount(uintptr_t ModuleBase) {
+    if (isNew) {
+        return Read<int32>((ModuleBase + Offsets::GUObjectArray) + Offsets::TUObjectArray +
+                           Offsets::TUObjectArrayNumElements423);
+    } else {
+        return Read<int32>((ModuleBase + Offsets::GUObjectArray) + Offsets::TUObjectArray +
+                           Offsets::TUObjectArrayNumElements);
+    }
+}
+
+uintptr_t GetUObjectFromID(uintptr_t ModuleBase, uint32 index) {
+    if (isNew) {
+        uintptr_t TUObjectArray = Read<uintptr_t>(
+                (ModuleBase + Offsets::GUObjectArray) + Offsets::TUObjectArray);
+        uintptr_t Chunk = Read<uintptr_t>(
+                TUObjectArray + ((index / 0x10000) * Offsets::PointerSize));
+        return Read<uintptr_t>(Chunk + Offsets::FUObjectItemPadd +
+                               ((index % 0x10000) * Offsets::FUObjectItemSize));
+    } else {
+        uintptr_t FUObjectArray = (ModuleBase + Offsets::GUObjectArray);
+        uintptr_t TUObjectArray = Read<uintptr_t>(FUObjectArray + Offsets::TUObjectArray);
+        return Read<uintptr_t>(TUObjectArray + (index * Offsets::FUObjectItemSize));
+    }
+}
+
 
 struct UObject {
     static int32 getIndex(uintptr_t object) {

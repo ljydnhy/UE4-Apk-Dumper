@@ -5,15 +5,14 @@
 #ifndef SDKGENERATOR_SDKSTRUCTURES_H
 #define SDKGENERATOR_SDKSTRUCTURES_H
 
+#include <vector>
+
 #include "Memory.h"
 
 #if defined(__LP64__)
 #include "Offsets64.h"
-
 #else
-
 #include "Offsets.h"
-
 #endif
 
 //signed
@@ -267,6 +266,10 @@ struct UStruct {
         }
 
         return classname;
+    }
+
+    static bool isValid(uintptr_t clazz) {
+        return (clazz > 0 && UObject::getNameID(clazz) > 0 && UObject::getClass(clazz) > 0);
     }
 };
 

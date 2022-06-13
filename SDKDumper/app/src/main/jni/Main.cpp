@@ -1,5 +1,5 @@
 //
-// Created by Ascarre on 09-05-2022.
+// Created by Ascarre on 13-06-2022.
 //
 
 #include <jni.h>
@@ -26,28 +26,31 @@ Java_ashope_tech_generator_Floater_Icon(JNIEnv *env, jobject thiz) {
 
 JNIEXPORT jstring JNICALL
 Java_ashope_tech_generator_Floater_Title(JNIEnv *env, jobject thiz) {
-    return env->NewStringUTF("Pubg Dumper v0.2");
+    return env->NewStringUTF("Pubg Dumper v0.3");
 }
 
 JNIEXPORT void JNICALL
 Java_ashope_tech_generator_Floater_DumperToggle(JNIEnv *env, jobject thiz, jint setting_code, jboolean jboolean1) {
     switch (setting_code) {
         case 0:
-            isNew = jboolean1;
+            isDumpLib = jboolean1;
             break;
         case 1:
-            isPubgM = jboolean1;
+            isNew = jboolean1;
             break;
         case 2:
-            isStringDump = jboolean1;
+            isPubgM = jboolean1;
             break;
         case 3:
-            isObjectsDump = jboolean1;
+            isStringDump = jboolean1;
             break;
         case 4:
-            isSdkDump = jboolean1;
+            isObjectsDump = jboolean1;
             break;
         case 5:
+            isSdkDump = jboolean1;
+            break;
+        case 6:
             isSdkWDump = jboolean1;
             break;
         default:

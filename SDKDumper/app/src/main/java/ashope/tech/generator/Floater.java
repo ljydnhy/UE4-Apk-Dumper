@@ -1,4 +1,4 @@
-package ashope.tech.generator;
+package ashope.tech.dumper;
 
 import android.app.Service;
 import android.content.Context;
@@ -435,15 +435,19 @@ public class Floater extends Service {
 
     /********** Build Menu **********/
     public void Menu() {
-        AddCategory(0, "Setup For Dumping");
-        EspToggle(0, "Game is 4.23+ Version", 0);
-        EspToggle(0, "PubgM Series", 1);
+
+        AddCategory(0, "Lib Dumping");
+        EspToggle(0, "Dump Lib", 0);
+
+        AddCategory(0,"Setup For Dumping");
+        EspToggle(0, "Game is 4.23+ Version", 1);
+        EspToggle(0, "PubgM Series", 2);
 
         AddCategory(0, "Dumper Options");
-        EspToggle(0, "Strings Dump", 2);
-        EspToggle(0, "Objects Dump", 3);
-        EspToggle(0, "SDK Dump (Full Dump - Use in training)", 4);
-        EspToggle(0, "SDK-W Dump (Selected Dump - Use at login)", 5);
+        EspToggle(0, "Strings Dump", 3);
+        EspToggle(0, "Objects Dump", 4);
+        EspToggle(0, "SDK Dump (Using GUObject)", 5);
+        EspToggle(0, "SDK-W Dump (Using GWorld)", 6);
 
         AddText(1, "Made By Ascarre | Join @Ascarre_Hacks", 15, 1, "#FFFF0000");
         AddText(1, "1- Fixed SDK Dump for 64 Bit", 15, 1, "#FF13FF00");

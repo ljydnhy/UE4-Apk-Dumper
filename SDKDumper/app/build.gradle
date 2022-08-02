@@ -3,15 +3,14 @@ plugins {
 }
 
 android {
-    compileSdk 32
-    buildToolsVersion "32.0.0"
+    compileSdk 33
 
     defaultConfig {
-        applicationId "ashope.tech.generator"
-        minSdk 26
-        targetSdk 32
-        versionCode 145
-        versionName "0.3"
+        applicationId "ashope.tech.dumper"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
 
         multiDexEnabled false
 
@@ -43,9 +42,8 @@ android {
             path file('src/main/jni/Android.mk')
         }
     }
-    ndkVersion = '24.0.8215888'
-    dependencies {
-        implementation fileTree(dir: 'libs', include: ['*.jar'])
-
-    }
+    ndkVersion = '25.0.8775105'
+}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }

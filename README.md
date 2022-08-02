@@ -51,12 +51,22 @@ Kill Apk signature Verification and follow this - https://youtu.be/cDEUkwToms4
 - 2) Added Support for Android API Level 32. Minimum Sdk is now 26 (Android 8).
 - 3) Cleaned Up the Source
 
+- v0.4:
+- 1) Added Support for Pubg Lite.
+- 2) Added Support for Android API Level 33. Minimum Sdk lowered to 21.
+- 3) Added XOR Decryption.
+- 4) Added GNames Decryption Method.
+- 5) Added Support for Full and Fast Lib Dumping.
+- 6) Fixed issues where 4.23+ Gmaes were not dumping.
+- 7) Fixed crash issues for 4.23+ games while dumping
+- 8) Added Support for different Games at once.
+- 9) Fixed Guobject dumping bugs.
+
 # To-Do
 1. Add support to Dump Specific Offsets only.
 2. Generate Internal Sdk Structures or Internal SDK.
 3. Add Support for UE3 and many other UE4 Games.
 4. Dump Calculted Offsets like ComponentToWorld and other Offsets.
-5. Add Support for Pubg Lite.
 
 # Want to Support me?
 Join my Telegram Channel - https://t.me/ascarrehacks

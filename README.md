@@ -67,7 +67,6 @@ Kill Apk signature Verification and follow this - https://youtu.be/cDEUkwToms4
 2. Generate Internal Sdk Structures or Internal SDK.
 3. Add Support for UE3 and many other UE4 Games.
 4. Dump Calculted Offsets like ComponentToWorld and other Offsets.
-5. Add support for Windows Games (Different Source)
 
 # Want to Support me?
 Join my Telegram Channel - https://t.me/ascarrehacks

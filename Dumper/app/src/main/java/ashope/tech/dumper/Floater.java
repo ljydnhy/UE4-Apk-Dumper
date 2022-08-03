@@ -67,7 +67,7 @@ public class Floater extends Service {
 
     /********** Menu Build up UI **********/
     public Floater() {
-        String[] arrstring = new String[]{"Dumping Options", "Offset Finder", "Info"};
+        String[] arrstring = new String[]{"Dumping Options", "Info"};
         TABS = arrstring;
         tabLayouts = new LinearLayout[arrstring.length];
         scrollLayouts = new ScrollView[arrstring.length];
@@ -453,9 +453,9 @@ public class Floater extends Service {
         EspToggle(0, "SDKW Dump", 6);
         EspToggle(0, "SDK Dump", 7);
 
-        AddText(2, "Made By Ascarre | Join @Ascarre_Hacks", 15, 1, "#FFFF0000");
-        AddText(2, "1- Fixed Lib Dumper for 32-64 Bit", 15, 1, "#FF13FF00");
-        AddText(2, "2- Nothing Special", 15, 1, "#FF13FF00");
+        AddText(1, "Made By Ascarre | Join @Ascarre_Hacks", 15, 1, "#FFFF0000");
+        AddText(1, "1- Fixed Lib Dumper for 32-64 Bit", 15, 1, "#FF13FF00");
+        AddText(1, "2- Nothing Special", 15, 1, "#FF13FF00");
     }
 
     /********** Drawing Functions **********/

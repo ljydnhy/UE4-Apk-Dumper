@@ -18,20 +18,14 @@ void RenderHacks(Canvas Draw, int SWidth, int SHeight) {
     string OutputDirectory = "/sdcard/DumpedGames/";
     OutputDirectory += Offsets::ProcessName;
 
-    if (isUE423) {
-        if (isEqual(Offsets::ProcessName, "Package Name of the game")){
-            Offsets::NewGame();
-            //isDecrypt = true;//If needs Xor Decryption then uncomment this line
-        }
-    } else {
-        if (isPubg){//If Gnames is Fuked UP
-            Offsets::PubgMobile();
-            if (isEqual(Offsets::ProcessName, "com.tencent.iglite")){
-                //Offsets::PubgLite();
-            }
-        }
+    if (isEqual(Offsets::ProcessName, "com.tencent.ig") || isEqual(Offsets::ProcessName, "com.pubg.imobile") /*|| isEqual(Offsets::ProcessName, "other_versions")*/){
+        Offsets::PubgMobile();
+    } else if (isEqual(Offsets::ProcessName, "com.tencent.iglite")){
+        Offsets::PubgLite();
+    } else if (isEqual(Offsets::ProcessName, "game_package")){
+        isDecrypt = true;//Needs Xor Decryption
     }
-
+     
     /******************** Dumping Functions ********************/
     //LibDump
     if (isLibDump && !LibDumped) {
